@@ -1,0 +1,10 @@
+-- +goose Up
+CREATE TABLE IF NOT EXISTS stock (
+    id SERIAL PRIMARY KEY,
+    warehouse_id INTEGER NOT NULL REFERENCES warehouses(id) ON DELETE CASCADE,
+    item_id INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+    quantity INTEGER NOT NULL DEFAULT 0
+);
+
+-- +goose Down
+DROP TABLE IF EXISTS stock;
