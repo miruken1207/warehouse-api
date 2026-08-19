@@ -59,10 +59,14 @@ func main() {
 	mux.Handle("GET /warehouses", warehouseHandler.GetAll())
 	mux.Handle("GET /warehouses/{id}", warehouseHandler.GetWarehouseByID())
 	mux.Handle("POST /warehouses", warehouseHandler.CreateWarehouse())
+	mux.Handle("DELETE /warehouses/{id}", warehouseHandler.DeleteWarehouseByID())
 
 	mux.Handle("GET /items", itemHandler.GetAll())
+	mux.Handle("GET /items/{id}", itemHandler.GetItemByID())
+	mux.Handle("POST /items", itemHandler.CreateItem())
 
-	mux.Handle("GET /warehouses{id}/stock", stockHandler.GetStockByWarehouseID())
+	mux.Handle("GET /warehouses/{id}/stock", stockHandler.GetStockByWarehouseID())
+	mux.Handle("GET /items/{id}/stock", stockHandler.GetStockByItemID())
 
 	server := &http.Server{
 		Addr:    ":8080",

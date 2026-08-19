@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
@@ -44,5 +45,25 @@ func (r *WarehouseRepository) CreateWarehouse(ctx context.Context, warehouse *mo
 	if err := r.db.GetContext(ctx, &warehouse.ID, query, warehouse.Name, warehouse.Location); err != nil {
 		return fmt.Errorf("WarehouseRepository.CreateWarehouse: %w", err)
 	}
+
+	return nil
+}
+
+func (r *WarehouseRepository) DeleteWarehouseByID(ctx context.Context, id int) error {
+	query := `DELETE FROM warehouses where id = $1`
+	result, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("WarehouseRepository.DeleteWarehouseByID: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("WarehouseRepository.DeleteWarehouseByID: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
 	return nil
 }

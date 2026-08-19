@@ -10,6 +10,7 @@ type WarehouseRepository interface {
 	GetAll(ctx context.Context) ([]model.Warehouse, error)
 	GetWarehouseByID(ctx context.Context, id int) (*model.Warehouse, error)
 	CreateWarehouse(ctx context.Context, warehouse *model.Warehouse) error
+	DeleteWarehouseByID(ctx context.Context, id int) error
 }
 
 type WarehouseService struct {
@@ -30,4 +31,8 @@ func (s *WarehouseService) GetWarehouseByID(ctx context.Context, id int) (*model
 
 func (s *WarehouseService) CreateWarehouse(ctx context.Context, warehouse *model.Warehouse) error {
 	return s.repo.CreateWarehouse(ctx, warehouse)
+}
+
+func (s *WarehouseService) DeleteWarehouseByID(ctx context.Context, id int) error {
+	return s.repo.DeleteWarehouseByID(ctx, id)
 }

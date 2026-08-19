@@ -8,6 +8,7 @@ import (
 
 type StockRepository interface {
 	GetStockByWarehouseID(ctx context.Context, id int) ([]model.Stock, error)
+	GetStockByItemID(ctx context.Context, id int) ([]model.Stock, error)
 }
 
 type StockService struct {
@@ -20,4 +21,8 @@ func NewStockService(r StockRepository) *StockService {
 
 func (s *StockService) GetStockByWarehouseID(ctx context.Context, id int) ([]model.Stock, error) {
 	return s.repo.GetStockByWarehouseID(ctx, id)
+}
+
+func (s *StockService) GetStockByItemID(ctx context.Context, id int) ([]model.Stock, error) {
+	return s.repo.GetStockByItemID(ctx, id)
 }

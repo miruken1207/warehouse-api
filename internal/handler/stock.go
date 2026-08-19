@@ -34,3 +34,23 @@ func (h *StockHandler) GetStockByWarehouseID() http.Handler {
 		WriteJSON(w, http.StatusOK, stock)
 	})
 }
+
+func (h *StockHandler) GetStockByItemID() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		idStr := r.PathValue("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			WriteError(w, http.StatusBadRequest, "id is not valid")
+			return
+		}
+
+		stock, err := h.service.GetStockByItemID(r.Context(), id)
+		if err != nil {
+			h.logger.Error("failed to get stock by item_id", "error", err.Error())
+			WriteError(w, http.StatusInternalServerError, "internal server error")
+			return
+		}
+
+		WriteJSON(w, http.StatusOK, &stock)
+	})
+}

@@ -22,5 +22,16 @@ func (r *StockRepository) GetStockByWarehouseID(ctx context.Context, id int) ([]
 	if err := r.db.SelectContext(ctx, &stock, query, id); err != nil {
 		return nil, fmt.Errorf("StockRepository.GetStockByWarehouseID: %w", err)
 	}
+
+	return stock, nil
+}
+
+func (r *StockRepository) GetStockByItemID(ctx context.Context, id int) ([]model.Stock, error) {
+	var stock []model.Stock
+	query := `SELECT id, warehouse_id, item_id, quantity FROM stock WHERE item_id = $1`
+	if err := r.db.SelectContext(ctx, &stock, query, id); err != nil {
+		return nil, fmt.Errorf("StockRepository.GetStockByItemID: %w", err)
+	}
+
 	return stock, nil
 }

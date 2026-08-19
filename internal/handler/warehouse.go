@@ -68,6 +68,11 @@ func (h *WarehouseHandler) CreateWarehouse() http.Handler {
 			return
 		}
 
+		if data.Name == "" || data.Location == "" {
+			WriteError(w, http.StatusBadRequest, "name and location are required")
+			return
+		}
+
 		warehouse := model.Warehouse{
 			Name:     data.Name,
 			Location: data.Location,
@@ -78,6 +83,29 @@ func (h *WarehouseHandler) CreateWarehouse() http.Handler {
 			return
 		}
 
-		WriteJSON(w, http.StatusOK, &warehouse)
+		WriteJSON(w, http.StatusCreated, &warehouse)
+	})
+}
+
+func (h *WarehouseHandler) DeleteWarehouseByID() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		idStr := r.PathValue("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			WriteError(w, http.StatusBadRequest, "id is not valid")
+			return
+		}
+
+		if err := h.service.DeleteWarehouseByID(r.Context(), id); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				WriteError(w, http.StatusNotFound, "not found")
+				return
+			}
+			h.logger.Error("failed to delete warehouse by id", "error", err.Error())
+			WriteError(w, http.StatusInternalServerError, "internal server error")
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
 	})
 }
