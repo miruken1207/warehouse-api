@@ -52,7 +52,8 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("GET /warehouses", warehouseHandler.GetAll())
-	mux.Handle("GET /warehouse/{id}", warehouseHandler.GetWarehouseByID())
+	mux.Handle("GET /warehouses/{id}", warehouseHandler.GetWarehouseByID())
+	mux.Handle("POST /warehouses", warehouseHandler.CreateWarehouse())
 	mux.Handle("GET /warehouses{id}/stock", stockHandler.GetStockByWarehouseID())
 
 	server := &http.Server{

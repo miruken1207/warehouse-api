@@ -9,6 +9,7 @@ import (
 type WarehouseRepository interface {
 	GetAll(ctx context.Context) ([]model.Warehouse, error)
 	GetWarehouseByID(ctx context.Context, id int) (*model.Warehouse, error)
+	CreateWarehouse(ctx context.Context, warehouse *model.Warehouse) error
 }
 
 type WarehouseService struct {
@@ -25,4 +26,8 @@ func (s *WarehouseService) GetAll(ctx context.Context) ([]model.Warehouse, error
 
 func (s *WarehouseService) GetWarehouseByID(ctx context.Context, id int) (*model.Warehouse, error) {
 	return s.repo.GetWarehouseByID(ctx, id)
+}
+
+func (s *WarehouseService) CreateWarehouse(ctx context.Context, warehouse *model.Warehouse) error {
+	return s.repo.CreateWarehouse(ctx, warehouse)
 }

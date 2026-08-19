@@ -2,11 +2,13 @@ package handler
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
 
+	"github.com/miruken1207/warehouse-api/internal/model"
 	"github.com/miruken1207/warehouse-api/internal/service"
 )
 
@@ -27,6 +29,7 @@ func (h *WarehouseHandler) GetAll() http.Handler {
 			WriteError(w, http.StatusInternalServerError, "internal server error")
 			return
 		}
+
 		WriteJSON(w, http.StatusOK, warehouses)
 	})
 }
@@ -39,6 +42,7 @@ func (h *WarehouseHandler) GetWarehouseByID() http.Handler {
 			WriteError(w, http.StatusBadRequest, "id is not valid")
 			return
 		}
+
 		warehouse, err := h.service.GetWarehouseByID(r.Context(), id)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
@@ -49,10 +53,31 @@ func (h *WarehouseHandler) GetWarehouseByID() http.Handler {
 			WriteError(w, http.StatusInternalServerError, "internal server error")
 			return
 		}
+
 		WriteJSON(w, http.StatusOK, warehouse)
 	})
 }
 
+func (h *WarehouseHandler) CreateWarehouse() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
 
+		var data model.CreateWarehouseRequest
+		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+			WriteError(w, http.StatusBadRequest, "bad request")
+			return
+		}
 
+		warehouse := model.Warehouse{
+			Name:     data.Name,
+			Location: data.Location,
+		}
+		if err := h.service.CreateWarehouse(r.Context(), &warehouse); err != nil {
+			h.logger.Error("failed to create warehouse", "error", err.Error())
+			WriteError(w, http.StatusInternalServerError, "internal server error")
+			return
+		}
 
+		WriteJSON(w, http.StatusOK, &warehouse)
+	})
+}

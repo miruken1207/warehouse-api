@@ -39,3 +39,10 @@ func (r *WarehouseRepository) GetWarehouseByID(ctx context.Context, id int) (*mo
 	return &warehouse, nil
 }
 
+func (r *WarehouseRepository) CreateWarehouse(ctx context.Context, warehouse *model.Warehouse) error {
+	query := `INSERT INTO warehouses(name, location) VALUES ($1, $2) RETURNING id`
+	if err := r.db.GetContext(ctx, &warehouse.ID, query, warehouse.Name, warehouse.Location); err != nil {
+		return fmt.Errorf("WarehouseRepository.CreateWarehouse: %w", err)
+	}
+	return nil
+}
