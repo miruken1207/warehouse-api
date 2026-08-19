@@ -46,14 +46,22 @@ func main() {
 	warehouseService := service.NewWarehouseService(warehouseRepository)
 	warehouseHandler := handler.NewWarehouseHandler(warehouseService, logger)
 
+	itemRepository := repository.NewItemRepository(db)
+	itemService := service.NewItemService(itemRepository)
+	itemHandler := handler.NewItemHandler(itemService, logger)
+
 	stockRepository := repository.NewStockRepository(db)
 	stockService := service.NewStockService(stockRepository)
 	stockHandler := handler.NewStockHandler(stockService, logger)
 
 	mux := http.NewServeMux()
+
 	mux.Handle("GET /warehouses", warehouseHandler.GetAll())
 	mux.Handle("GET /warehouses/{id}", warehouseHandler.GetWarehouseByID())
 	mux.Handle("POST /warehouses", warehouseHandler.CreateWarehouse())
+
+	mux.Handle("GET /items", itemHandler.GetAll())
+
 	mux.Handle("GET /warehouses{id}/stock", stockHandler.GetStockByWarehouseID())
 
 	server := &http.Server{
