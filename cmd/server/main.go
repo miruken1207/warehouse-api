@@ -11,10 +11,18 @@ import (
 
 	"github.com/miruken1207/warehouse-api/internal/config"
 	"github.com/miruken1207/warehouse-api/internal/handler"
+	"github.com/miruken1207/warehouse-api/internal/middleware"
 	"github.com/miruken1207/warehouse-api/internal/repository"
 	"github.com/miruken1207/warehouse-api/internal/service"
+
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// @title Warehouse API
+// @version 1.0
+// @description CRUD API для управления складами, товарами и остатками
+// @host localhost:8080
+// @BasePath /
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -68,10 +76,13 @@ func main() {
 	mux.Handle("GET /warehouses/{id}/stock", stockHandler.GetStockByWarehouseID())
 	mux.Handle("GET /items/{id}/stock", stockHandler.GetStockByItemID())
 	mux.Handle("PATCH /stock", stockHandler.UpdateStock())
+	mux.Handle("POST /stock/transfer", stockHandler.TransferStock())
+
+	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
 	server := &http.Server{
 		Addr:    ":8080",
-		Handler: mux,
+		Handler: middleware.Recover(middleware.Log(mux, logger), logger),
 	}
 
 	logger.Info("server started", "port", server.Addr)
