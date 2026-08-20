@@ -2,14 +2,17 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/miruken1207/warehouse-api/internal/model"
+	"github.com/miruken1207/warehouse-api/internal/repository"
 )
 
 type StockRepository interface {
 	GetStockByWarehouseID(ctx context.Context, id int) ([]model.Stock, error)
 	GetStockByItemID(ctx context.Context, id int) ([]model.Stock, error)
 	UpdateStock(ctx context.Context, updateReq *model.UpdateStockRequest) error
+	BeginTx(ctx context.Context) (repository.StockTx, error)
 }
 
 type StockService struct {
@@ -30,4 +33,34 @@ func (s *StockService) GetStockByItemID(ctx context.Context, id int) ([]model.St
 
 func (s *StockService) UpdateStock(ctx context.Context, updateReq *model.UpdateStockRequest) error {
 	return s.repo.UpdateStock(ctx, updateReq)
+}
+
+func (s *StockService) TransferStock(ctx context.Context, transferReq *model.TransferStockRequest) error {
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		return fmt.Errorf("StockService.TransferStock: %w", err)
+	}
+	defer tx.Rollback()
+
+	if err := tx.UpdateStock(ctx, &model.UpdateStockRequest{
+		WarehouseID: transferReq.FromWarehouseID,
+		ItemID:      transferReq.ItemID,
+		Delta:       -transferReq.Quantity,
+	}); err != nil {
+		return fmt.Errorf("StockService.TransferStock: %w", err)
+	}
+
+	if err := tx.UpdateStock(ctx, &model.UpdateStockRequest{
+		WarehouseID: transferReq.ToWarehouseID,
+		ItemID:      transferReq.ItemID,
+		Delta:       +transferReq.Quantity,
+	}); err != nil {
+		return fmt.Errorf("StockService.TransferStock: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("StockService.TransferStock: %w", err)
+	}
+
+	return nil
 }

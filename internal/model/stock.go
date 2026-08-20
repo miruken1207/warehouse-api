@@ -12,3 +12,10 @@ type UpdateStockRequest struct {
 	ItemID      int `json:"item_id"`
 	Delta       int `json:"delta"`
 }
+
+type TransferStockRequest struct {
+	FromWarehouseID int `json:"from_warehouse_id"`
+	ToWarehouseID   int `json:"to_warehouse_id"`
+	ItemID          int `json:"item_id"`
+	Quantity        int `json:"quantity"`
+}

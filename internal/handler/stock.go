@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -82,6 +83,34 @@ func (h *StockHandler) UpdateStock() http.Handler {
 			}
 		}
 
+		w.WriteHeader(http.StatusOK)
+	})
+}
+
+func (h *StockHandler) TransferStock() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+
+		var transferReq model.TransferStockRequest
+		if err := json.NewDecoder(r.Body).Decode(&transferReq); err != nil {
+			WriteError(w, http.StatusBadRequest, "bad request")
+			return
+		}
+
+		if err := h.service.TransferStock(r.Context(), &transferReq); err != nil {
+			if errors.Is(err, repository.ErrStockNotFound) {
+				WriteError(w, http.StatusNotFound, "not found")
+				return
+			}
+			if errors.Is(err, repository.ErrInsufficientStock) {
+				WriteError(w, http.StatusUnprocessableEntity, "unprocessable entity")
+				return
+			}
+			h.logger.Error("StockHandler.TransferStock: %w", "error", err.Error())
+			WriteError(w, http.StatusInternalServerError, "internal server error")
+			return
+		}
+		
 		w.WriteHeader(http.StatusOK)
 	})
 }
