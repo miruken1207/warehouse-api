@@ -7,6 +7,6 @@ type Item struct {
 }
 
 type CreateItemRequest struct {
-	Name     string `json:"name" db:"name"`
-	Category string `json:"category" db:"category"`
+	Name     string `json:"name"`
+	Category string `json:"category"`
 }

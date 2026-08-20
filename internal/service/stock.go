@@ -9,6 +9,7 @@ import (
 type StockRepository interface {
 	GetStockByWarehouseID(ctx context.Context, id int) ([]model.Stock, error)
 	GetStockByItemID(ctx context.Context, id int) ([]model.Stock, error)
+	UpdateStock(ctx context.Context, updateReq *model.UpdateStockRequest) error
 }
 
 type StockService struct {
@@ -25,4 +26,8 @@ func (s *StockService) GetStockByWarehouseID(ctx context.Context, id int) ([]mod
 
 func (s *StockService) GetStockByItemID(ctx context.Context, id int) ([]model.Stock, error) {
 	return s.repo.GetStockByItemID(ctx, id)
+}
+
+func (s *StockService) UpdateStock(ctx context.Context, updateReq *model.UpdateStockRequest) error {
+	return s.repo.UpdateStock(ctx, updateReq)
 }

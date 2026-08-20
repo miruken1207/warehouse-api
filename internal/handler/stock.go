@@ -1,10 +1,13 @@
 package handler
 
 import (
+	"encoding/json"
 	"log/slog"
 	"net/http"
 	"strconv"
 
+	"github.com/miruken1207/warehouse-api/internal/model"
+	"github.com/miruken1207/warehouse-api/internal/repository"
 	"github.com/miruken1207/warehouse-api/internal/service"
 )
 
@@ -52,5 +55,33 @@ func (h *StockHandler) GetStockByItemID() http.Handler {
 		}
 
 		WriteJSON(w, http.StatusOK, &stock)
+	})
+}
+
+func (h *StockHandler) UpdateStock() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+
+		var updateReq model.UpdateStockRequest
+		if err := json.NewDecoder(r.Body).Decode(&updateReq); err != nil {
+			WriteError(w, http.StatusBadRequest, "bad request")
+			return
+		}
+
+		if err := h.service.UpdateStock(r.Context(), &updateReq); err != nil {
+			switch err {
+			case repository.ErrStockNotFound:
+				WriteError(w, http.StatusNotFound, "not found")
+				return
+			case repository.ErrInsufficientStock:
+				WriteError(w, http.StatusUnprocessableEntity, "unprocessable entity")
+				return
+			default:
+				h.logger.Error("failed to update stock", "err", err.Error())
+				WriteError(w, http.StatusInternalServerError, "internal server error")
+			}
+		}
+
+		w.WriteHeader(http.StatusOK)
 	})
 }

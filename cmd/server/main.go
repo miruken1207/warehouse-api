@@ -67,6 +67,7 @@ func main() {
 
 	mux.Handle("GET /warehouses/{id}/stock", stockHandler.GetStockByWarehouseID())
 	mux.Handle("GET /items/{id}/stock", stockHandler.GetStockByItemID())
+	mux.Handle("PATCH /stock", stockHandler.UpdateStock())
 
 	server := &http.Server{
 		Addr:    ":8080",

@@ -7,6 +7,6 @@ type Warehouse struct {
 }
 
 type CreateWarehouseRequest struct {
-	Name     string `json:"name" db:"name"`
-	Location string `json:"location" db:"location"`
+	Name     string `json:"name"`
+	Location string `json:"location"`
 }
