@@ -18,7 +18,7 @@ func NewWarehouseRepository(database *sqlx.DB) *WarehouseRepository {
 }
 
 func (r *WarehouseRepository) GetAll(ctx context.Context) ([]model.Warehouse, error) {
-	var warehouses []model.Warehouse
+	warehouses := []model.Warehouse{}
 
 	query := `SELECT id, name, location FROM warehouses ORDER BY id`
 

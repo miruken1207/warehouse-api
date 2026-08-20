@@ -29,9 +29,12 @@ type stockTx struct {
 }
 
 func (t *stockTx) UpdateStock(ctx context.Context, updateReq *model.UpdateStockRequest) error {
-	query := `UPDATE stock SET quantity = quantity + $1 WHERE warehouse_id = $2 AND item_id = $3 AND quantity + $1 >= 0`
+	query := `INSERT INTO stock (warehouse_id, item_id, quantity)
+	VALUES ($1, $2, $3)
+	ON CONFLICT (warehouse_id, item_id)
+	DO UPDATE SET quantity = stock.quantity + $3`
 
-	res, err := t.tx.ExecContext(ctx, query, updateReq.Delta, updateReq.WarehouseID, updateReq.ItemID)
+	res, err := t.tx.ExecContext(ctx, query, updateReq.WarehouseID, updateReq.ItemID, updateReq.Delta)
 	if err != nil {
 		return fmt.Errorf("stockTx.UpdateStock: %w", err)
 	}

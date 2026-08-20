@@ -18,8 +18,26 @@ func NewStockRepository(database *sqlx.DB) *StockRepository {
 	return &StockRepository{db: database}
 }
 
+func (r *StockRepository) GetAll(ctx context.Context) ([]model.Stock, error) {
+	stock := []model.Stock{}
+	query := `SELECT id, warehouse_id, item_id, quantity FROM stock`
+	if err := r.db.SelectContext(ctx, &stock, query); err != nil {
+		return nil, fmt.Errorf("StockRepository.GetAll: %w", err)
+	}
+
+	return stock, nil
+}
+
 func (r *StockRepository) GetStockByWarehouseID(ctx context.Context, id int) ([]model.Stock, error) {
-	var stock []model.Stock
+	var exists bool
+	if err := r.db.GetContext(ctx, &exists, `SELECT EXISTS(SELECT 1 FROM warehouses WHERE id = $1)`, id); err != nil {
+		return nil, fmt.Errorf("StockRepository.GetStockByWarehouseID: %w", err)
+	}
+	if !exists {
+		return nil, sql.ErrNoRows
+	}
+
+	stock := []model.Stock{}
 	query := `SELECT id, warehouse_id, item_id, quantity FROM stock WHERE warehouse_id = $1`
 	if err := r.db.SelectContext(ctx, &stock, query, id); err != nil {
 		return nil, fmt.Errorf("StockRepository.GetStockByWarehouseID: %w", err)
@@ -29,7 +47,15 @@ func (r *StockRepository) GetStockByWarehouseID(ctx context.Context, id int) ([]
 }
 
 func (r *StockRepository) GetStockByItemID(ctx context.Context, id int) ([]model.Stock, error) {
-	var stock []model.Stock
+	var exists bool
+	if err := r.db.GetContext(ctx, &exists, `SELECT EXISTS(SELECT 1 FROM items WHERE id = $1)`, id); err != nil {
+		return nil, fmt.Errorf("StockRepository.GetStockByItemID: %w", err)
+	}
+	if !exists {
+		return nil, sql.ErrNoRows
+	}
+
+	stock := []model.Stock{}
 	query := `SELECT id, warehouse_id, item_id, quantity FROM stock WHERE item_id = $1`
 	if err := r.db.SelectContext(ctx, &stock, query, id); err != nil {
 		return nil, fmt.Errorf("StockRepository.GetStockByItemID: %w", err)
@@ -42,6 +68,15 @@ var (
 	ErrStockNotFound     = errors.New("stock record not found")
 	ErrInsufficientStock = errors.New("insufficient stock quantity")
 )
+
+func (r *StockRepository) CreateStock(ctx context.Context, stock *model.Stock) error {
+	query := `INSERT INTO stock (warehouse_id, item_id, quantity) VALUES ($1, $2, $3) RETURNING id`
+	if err := r.db.GetContext(ctx, &stock.ID, query, stock.WarehouseID, stock.ItemID, stock.Quantity); err != nil {
+		return fmt.Errorf("StockRepository.CreateStock: %w", err)
+	}
+
+	return nil
+}
 
 func (r *StockRepository) UpdateStock(ctx context.Context, updateReq *model.UpdateStockRequest) error {
 	query := `UPDATE stock SET quantity = quantity + $1 WHERE warehouse_id = $2 AND item_id = $3 AND quantity + $1 >= 0`

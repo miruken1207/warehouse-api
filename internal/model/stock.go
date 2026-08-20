@@ -7,6 +7,12 @@ type Stock struct {
 	Quantity    int `json:"quantity" db:"quantity"`
 }
 
+type CreateStockRequest struct {
+	WarehouseID int `json:"warehouse_id"`
+	ItemID      int `json:"item_id"`
+	Quantity    int `json:"quantity"`
+}
+
 type UpdateStockRequest struct {
 	WarehouseID int `json:"warehouse_id"`
 	ItemID      int `json:"item_id"`

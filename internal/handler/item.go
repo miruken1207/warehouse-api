@@ -21,6 +21,16 @@ func NewItemHandler(s *service.ItemService, l *slog.Logger) *ItemHandler {
 	return &ItemHandler{service: s, logger: l}
 }
 
+// GetAll godoc
+// @Summary      Get all items / Получить список товаров
+// @Description  Returns a list of all items.
+// @Description
+// @Description  Возвращает список всех товаров.
+// @Tags         items
+// @Produce      json
+// @Success      200  {array}   model.Item
+// @Failure      500  {object}  model.ErrorResponse
+// @Router       /items [get]
 func (h *ItemHandler) GetAll() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		items, err := h.service.GetAll(r.Context())
@@ -33,6 +43,19 @@ func (h *ItemHandler) GetAll() http.Handler {
 	})
 }
 
+// GetItemByID godoc
+// @Summary      Get item by ID / Получить товар по ID
+// @Description  Returns an item by its identifier.
+// @Description
+// @Description  Возвращает товар по его идентификатору.
+// @Tags         items
+// @Produce      json
+// @Param        id   path      int  true  "Item ID / ID товара"
+// @Success      200  {object}  model.Item
+// @Failure      400  {object}  model.ErrorResponse
+// @Failure      404  {object}  model.ErrorResponse
+// @Failure      500  {object}  model.ErrorResponse
+// @Router       /items/{id} [get]
 func (h *ItemHandler) GetItemByID() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		idStr := r.PathValue("id")
@@ -57,6 +80,19 @@ func (h *ItemHandler) GetItemByID() http.Handler {
 	})
 }
 
+// CreateItem godoc
+// @Summary      Create item / Создать товар
+// @Description  Creates a new item.
+// @Description
+// @Description  Создаёт новый товар.
+// @Tags         items
+// @Accept       json
+// @Produce      json
+// @Param        request  body      model.CreateItemRequest  true  "Item data / Данные товара"
+// @Success      201      {object}  model.Item
+// @Failure      400      {object}  model.ErrorResponse
+// @Failure      500      {object}  model.ErrorResponse
+// @Router       /items [post]
 func (h *ItemHandler) CreateItem() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()

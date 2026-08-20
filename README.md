@@ -1,22 +1,50 @@
+English · [Русский](README.ru.md)
+
 # warehouse-api
 
-**Склады**
-- `GET /warehouses` — список всех складов
-- `GET /warehouses/{id}` — один склад по идентификатору
-- `POST /warehouses` — создать склад
-- `DELETE /warehouses/{id}` — удалить склад
+REST API for tracking warehouses, items and stock levels.
 
-**Товары**
-- `GET /items` — список всех товаров
-- `GET /items/{id}` — один товар по идентификатору
-- `POST /items` — создать товар
+## Quick start
 
-**Остатки**
-- `GET /warehouses/{id}/stock` — остатки конкретного склада, то есть все товары и количества, которые на нём лежат
-- `GET /items/{id}/stock` — остатки конкретного товара по всем складам
-- `PATCH /stock` — изменить количество, то есть пополнение или списание; в теле запроса передаёшь идентификатор склада, идентификатор товара и на сколько изменить, плюс-минус
-- `POST /stock/transfer` — транзакционный перевод товара между складами; в теле передаёшь склад-источник, склад-назначение, товар и количество
+```
+cp .env.example .env
+make up
+```
 
-Обрати внимание на два момента в путях. Остатки склада и остатки товара я повесил как вложенные пути под соответствующие сущности — `/warehouses/{id}/stock` и `/items/{id}/stock` — это читается логичнее, чем плоский `/stock?warehouse_id=`. А вот `PATCH /stock` и `POST /stock/transfer` — это уже отдельные самостоятельные операции над таблицей остатков, не привязанные к одному складу или товару, поэтому они не вложены.
+Brings up Postgres and the API in Docker, migrations run automatically on startup. API listens on `:8080`, docs at `http://localhost:8080/swagger/index.html`.
 
-Согласен с такой раскладкой, или хочешь через query-параметры вместо вложенных путей?
+Tear down:
+
+```
+make down
+```
+
+## API
+
+### Warehouses
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/warehouses` | List warehouses |
+| GET | `/warehouses/{id}` | Get warehouse by id |
+| POST | `/warehouses` | Create warehouse |
+| DELETE | `/warehouses/{id}` | Delete warehouse |
+
+### Items
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/items` | List items |
+| GET | `/items/{id}` | Get item by id |
+| POST | `/items` | Create item |
+
+### Stock
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/stock` | All stock records |
+| GET | `/warehouses/{id}/stock` | Stock for a given warehouse |
+| GET | `/items/{id}/stock` | Stock for a given item across all warehouses |
+| POST | `/stock` | Create a stock record (warehouse + item + quantity) |
+| PATCH | `/stock` | Adjust quantity by a delta (restock or write-off, can be negative) |
+| POST | `/stock/transfer` | Move stock between two warehouses in one transaction |

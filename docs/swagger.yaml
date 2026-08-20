@@ -1,0 +1,494 @@
+basePath: /
+definitions:
+  model.CreateItemRequest:
+    properties:
+      category:
+        type: string
+      name:
+        type: string
+    type: object
+  model.CreateStockRequest:
+    properties:
+      item_id:
+        type: integer
+      quantity:
+        type: integer
+      warehouse_id:
+        type: integer
+    type: object
+  model.CreateWarehouseRequest:
+    properties:
+      location:
+        type: string
+      name:
+        type: string
+    type: object
+  model.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  model.Item:
+    properties:
+      category:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  model.Stock:
+    properties:
+      id:
+        type: integer
+      item_id:
+        type: integer
+      quantity:
+        type: integer
+      warehouse_id:
+        type: integer
+    type: object
+  model.TransferStockRequest:
+    properties:
+      from_warehouse_id:
+        type: integer
+      item_id:
+        type: integer
+      quantity:
+        type: integer
+      to_warehouse_id:
+        type: integer
+    type: object
+  model.UpdateStockRequest:
+    properties:
+      delta:
+        type: integer
+      item_id:
+        type: integer
+      warehouse_id:
+        type: integer
+    type: object
+  model.Warehouse:
+    properties:
+      id:
+        type: integer
+      location:
+        type: string
+      name:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: |-
+    CRUD API for managing warehouses, items and stock.
+
+    CRUD API для управления складами, товарами и остатками.
+  title: Warehouse API
+  version: "1.0"
+paths:
+  /items:
+    get:
+      description: |-
+        Returns a list of all items.
+
+        Возвращает список всех товаров.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Item'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Get all items / Получить список товаров
+      tags:
+      - items
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Creates a new item.
+
+        Создаёт новый товар.
+      parameters:
+      - description: Item data / Данные товара
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateItemRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Item'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Create item / Создать товар
+      tags:
+      - items
+  /items/{id}:
+    get:
+      description: |-
+        Returns an item by its identifier.
+
+        Возвращает товар по его идентификатору.
+      parameters:
+      - description: Item ID / ID товара
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Item'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Get item by ID / Получить товар по ID
+      tags:
+      - items
+  /items/{id}/stock:
+    get:
+      description: |-
+        Returns stock records for an item across all warehouses by its identifier.
+
+        Возвращает остатки товара по всем складам по идентификатору товара.
+      parameters:
+      - description: Item ID / ID товара
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Stock'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Get stock by item / Получить остатки по товару
+      tags:
+      - stock
+  /stock:
+    get:
+      description: |-
+        Returns a list of all stock records across warehouses.
+
+        Возвращает список всех остатков товаров по складам.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Stock'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Get all stock records / Получить все остатки
+      tags:
+      - stock
+    patch:
+      consumes:
+      - application/json
+      description: |-
+        Adjusts item quantity in a warehouse by a delta (can be negative).
+
+        Изменяет количество товара на складе на величину delta (может быть отрицательной).
+      parameters:
+      - description: Stock adjustment data / Данные изменения остатка
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdateStockRequest'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: stock record not found / остаток не найден
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "422":
+          description: insufficient stock quantity / недостаточно товара на складе
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Adjust stock quantity / Изменить остаток товара
+      tags:
+      - stock
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Creates a stock record for an item in a warehouse.
+
+        Создаёт запись об остатке товара на складе.
+      parameters:
+      - description: Stock data / Данные остатка
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateStockRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Stock'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Create stock record / Создать остаток товара
+      tags:
+      - stock
+  /stock/transfer:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Moves a given quantity of an item from one warehouse to another.
+
+        Переносит указанное количество товара с одного склада на другой.
+      parameters:
+      - description: Transfer data / Данные перемещения
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.TransferStockRequest'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: stock record not found / остаток не найден
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "422":
+          description: insufficient stock quantity / недостаточно товара на складе
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Transfer stock between warehouses / Переместить товар между складами
+      tags:
+      - stock
+  /warehouses:
+    get:
+      description: |-
+        Returns a list of all warehouses.
+
+        Возвращает список всех складов.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Warehouse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Get all warehouses / Получить список складов
+      tags:
+      - warehouses
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Creates a new warehouse.
+
+        Создаёт новый склад.
+      parameters:
+      - description: Warehouse data / Данные склада
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateWarehouseRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Warehouse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Create warehouse / Создать склад
+      tags:
+      - warehouses
+  /warehouses/{id}:
+    delete:
+      description: |-
+        Deletes a warehouse by its identifier.
+
+        Удаляет склад по его идентификатору.
+      parameters:
+      - description: Warehouse ID / ID склада
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Delete warehouse / Удалить склад
+      tags:
+      - warehouses
+    get:
+      description: |-
+        Returns a warehouse by its identifier.
+
+        Возвращает склад по его идентификатору.
+      parameters:
+      - description: Warehouse ID / ID склада
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Warehouse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Get warehouse by ID / Получить склад по ID
+      tags:
+      - warehouses
+  /warehouses/{id}/stock:
+    get:
+      description: |-
+        Returns stock records for a warehouse by its identifier.
+
+        Возвращает остатки товаров на складе по его идентификатору.
+      parameters:
+      - description: Warehouse ID / ID склада
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Stock'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Get stock by warehouse / Получить остатки по складу
+      tags:
+      - stock
+swagger: "2.0"

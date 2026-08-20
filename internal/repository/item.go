@@ -17,7 +17,7 @@ func NewItemRepository(database *sqlx.DB) *ItemRepository {
 }
 
 func (r *ItemRepository) GetAll(ctx context.Context) ([]model.Item, error) {
-	var items []model.Item
+	items := []model.Item{}
 	query := `SELECT id, name, category FROM items`
 	if err := r.db.SelectContext(ctx, &items, query); err != nil {
 		return nil, fmt.Errorf("ItemRepository.GetAll: %w", err)
